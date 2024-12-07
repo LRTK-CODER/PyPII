@@ -10,6 +10,7 @@ PII(개인식별정보) 검출 모듈
 """
 
 import re
+import magic
 from pathlib import Path
 from typing import List, Dict
 from dataclasses import dataclass
@@ -90,7 +91,27 @@ class PIIDetector:
         Returns:
             DetectionResult 객체들의 리스트
         """
-        with open(file_path, 'r', encoding='utf-8') as f:
-            text = f.read()
+        file_path = Path(file_path)
+        mime_type = magic.from_file(str(file_path), mime=True)
+        
+        if mime_type == 'application/pdf':
+            # PDF 파일 처리
+            import pdfplumber
+            text = ""
+            with pdfplumber.open(file_path) as pdf:
+                for page in pdf.pages:
+                    text += page.extract_text() or ""
+        
+        elif mime_type == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+            # DOCX 파일 처리
+            import docx
+            doc = docx.Document(file_path)
+            text = "\n".join(paragraph.text for paragraph in doc.paragraphs)
+        
+        else:
+            # 일반 텍스트 파일 처리
+            with open(file_path, 'r', encoding='utf-8') as f:
+                text = f.read()
+                
         return self.detect(text)
     
