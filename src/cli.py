@@ -1,9 +1,15 @@
 """
+PyPII CLI Interface
+
+Command-line interface for detecting Personally Identifiable Information (PII).
+This module provides a command-line tool for scanning files and directories for PII.
+
 PyPII CLI 인터페이스
 
 개인식별정보(PII) 검출을 위한 명령줄 인터페이스입니다.
+이 모듈은 파일과 디렉토리에서 PII를 검사하기 위한 명령줄 도구를 제공합니다.
 
-사용 예시:
+Usage example / 사용 예시:
     pypii scan /path/to/scan --pattern-file patterns.json --output report.json
 """
 
@@ -22,46 +28,84 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 def create_parser() -> argparse.ArgumentParser:
-    """명령줄 인자 파서 생성"""
+    """
+    Create command line argument parser.
+    
+    Returns:
+        ArgumentParser object configured with PII detection tool options:
+        - path: Path to file or directory to scan
+        - pattern-file: Path to pattern definition file
+        - output: Path to output report file
+        - format: Report format (json/csv)
+        - verbose: Enable detailed logging
+
+    명령줄 인자 파서를 생성합니다.
+
+    Returns:
+        PII 검출 도구 옵션이 설정된 ArgumentParser 객체:
+        - path: 스캔할 파일 또는 디렉토리 경로
+        - pattern-file: 패턴 정의 파일 경로
+        - output: 결과 리포트 파일 경로
+        - format: 리포트 형식 (json/csv)
+        - verbose: 상세 로깅 활성화
+    """
     parser = argparse.ArgumentParser(
-        description="개인식별정보(PII) 검출 도구",
+        description="PII(개인식별정보) 검출 도구 / PII(Personally Identifiable Information) Detection Tool",
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
     
     parser.add_argument(
         "path",
-        help="스캔할 파일 또는 디렉토리 경로"
+        help="스캔할 파일 또는 디렉토리 경로 / Path to file or directory to scan"
     )
     
     parser.add_argument(
         "-p", "--pattern-file",
         default="patterns.json",
-        help="PII 패턴 정의 파일 경로 (기본값: patterns.json)"
+        help="PII 패턴 정의 파일 경로 (기본값: patterns.json) / Path to PII pattern definition file (default: patterns.json)"
     )
     
     parser.add_argument(
         "-o", "--output",
         default="pii_report.json",
-        help="결과 리포트 파일 경로 (기본값: pii_report.json)"
+        help="결과 리포트 파일 경로 (기본값: pii_report.json) / Path to output report file (default: pii_report.json)"
     )
     
     parser.add_argument(
         "-f", "--format",
         choices=["json", "csv"],
         default="json",
-        help="리포트 형식 (기본값: json)"
+        help="리포트 형식 (기본값: json) / Report format (default: json)"
     )
     
     parser.add_argument(
         "-v", "--verbose",
         action="store_true",
-        help="상세 로깅 활성화"
+        help="상세 로깅 활성화 / Enable verbose logging"
     )
     
     return parser
 
 def scan_files(path: str, pattern_file: str) -> List[Path]:
-    """파일 스캔 실행"""
+    """
+    Execute file scanning for PII detection.
+
+    Args:
+        path: Path to file or directory to scan
+        pattern_file: Path to PII pattern definition file
+
+    Returns:
+        ReportGenerator object containing scan results and statistics
+
+    파일 스캔을 실행하여 PII를 검출합니다.
+
+    Args:
+        path: 스캔할 파일 또는 디렉토리 경로
+        pattern_file: PII 패턴 정의 파일 경로
+
+    Returns:
+        스캔 결과와 통계가 포함된 ReportGenerator 객체
+    """
     scanner = FileScanner()
     detector = PIIDetector(pattern_file)
     report_gen = ReportGenerator()
@@ -89,7 +133,29 @@ def scan_files(path: str, pattern_file: str) -> List[Path]:
     return report_gen
 
 def main():
-    """메인 실행 함수"""
+    """
+    Main execution function for the CLI application.
+    
+    This function:
+    - Parses command line arguments
+    - Executes file scanning
+    - Generates and saves the report
+    - Displays summary information
+    
+    Returns:
+        0 for successful execution, 1 for errors
+
+    메인 실행 함수입니다.
+    
+    이 함수는:
+    - 명령줄 인자를 파싱
+    - 파일 스캔을 실행
+    - 리포트 생성 및 저장
+    - 요약 정보 출력
+    
+    Returns:
+        정상 실행 시 0, 오류 발생 시 1
+    """
     parser = create_parser()
     args = parser.parse_args()
     

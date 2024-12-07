@@ -1,10 +1,15 @@
 """
-파일 시스템 스캐닝 모듈
+File System Scanner Module
+
+This module recursively scans directories to find supported files.
+File types are determined based on MIME types.
+
+파일 시스템 스캐너 모듈
 
 이 모듈은 지정된 디렉토리를 재귀적으로 스캔하여 지원되는 파일들을 찾습니다.
 파일 타입은 MIME 타입을 기반으로 판단됩니다.
 
-사용 예시:
+Usage example / 사용 예시:
     scanner = FileScanner()
     for file_path in scanner.scan_directory("/path/to/scan"):
         print(f"Found file: {file_path}")
@@ -18,10 +23,19 @@ import logging
 logger = logging.getLogger(__name__)
 
 class FileScanner:
-    """파일 시스템을 스캔하고 파일 타입을 감지하는 클래스"""
+    """
+    Class for scanning file system and detecting file types
+    파일 시스템을 스캔하고 파일 타입을 감지하는 클래스
+    """
     
     def __init__(self, supported_types: Set[str] = None):
         """
+        Initialize FileScanner
+
+        Args:
+            supported_types: Set of supported MIME types
+                           Default: text/plain, application/pdf
+
         FileScanner 초기화
 
         Args:
@@ -38,6 +52,17 @@ class FileScanner:
         
     def scan_directory(self, path: str) -> Generator[Path, None, None]:
         """
+        Recursively scan directory to find supported files.
+
+        Args:
+            path: Directory path to scan
+
+        Yields:
+            Path objects of supported files
+
+        Raises:
+            FileNotFoundError: When directory is not found
+
         디렉토리를 재귀적으로 스캔하여 지원되는 파일들을 찾습니다.
 
         Args:
@@ -65,6 +90,14 @@ class FileScanner:
                     
     def _is_supported_file(self, file_path: Path) -> bool:
         """
+        Check if the file is of a supported type.
+
+        Args:
+            file_path: Path to the file to check
+
+        Returns:
+            True if the file is supported, False otherwise
+
         파일이 지원되는 타입인지 확인합니다.
 
         Args:

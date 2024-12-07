@@ -1,15 +1,23 @@
 """
+PII Pattern Definition and Loading Module
+
+This module loads and manages PII patterns from JSON files.
+
+Patterns are organized by risk levels (HIGH, MEDIUM, LOW),
+and each pattern includes a name, regex pattern, and description.
+
 PII(개인식별정보) 패턴을 정의하고 로드하는 모듈
 
 이 모듈은 JSON 파일에서 PII 패턴을 로드하고 관리합니다.
+
 패턴은 위험도 레벨(HIGH, MEDIUM, LOW)별로 구성되며,
 각 패턴은 이름, 정규표현식 패턴, 설명을 포함합니다.
 
-사용 예시:
+Usage example / 사용 예시:
     loader = PatternLoader()
     patterns = loader.load_patterns("patterns.json")
 
-JSON 파일 형식:
+JSON file format / JSON 파일 형식:
 {
     "patterns": {
         "HIGH": [
@@ -34,6 +42,13 @@ from typing import List, Dict
 
 class RiskLevel(Enum):
     """
+    Enumeration defining risk levels for PII patterns.
+
+    Attributes:
+        HIGH: High risk (e.g., National ID, Passport number)
+        MEDIUM: Medium risk (e.g., Phone number, Bank account)
+        LOW: Low risk (e.g., Email address, IP address)
+
     PII 패턴의 위험도 레벨을 정의하는 열거형
 
     Attributes:
@@ -49,6 +64,14 @@ class RiskLevel(Enum):
 @dataclass
 class PIIPattern:
     """
+    Data class containing PII pattern information.
+
+    Attributes:
+        name: Pattern name (e.g., "National ID")
+        pattern: Regular expression pattern string
+        risk_level: Risk level (RiskLevel enum)
+        description: Pattern description
+
     PII 패턴의 정보를 담는 데이터 클래스
 
     Attributes:
@@ -64,11 +87,26 @@ class PIIPattern:
 
 
 class PatternLoader:
-    """JSON 파일에서 PII 패턴을 로드하는 클래스"""
+    """
+    Class for loading PII patterns from JSON files.
+    JSON 파일에서 PII 패턴을 로드하는 클래스
+    """
 
     @staticmethod
     def load_patterns(pattern_file: str) -> List[PIIPattern]:
         """
+        Load PII patterns from the specified JSON file.
+
+        Args:
+            pattern_file: Path to pattern definition JSON file
+
+        Returns:
+            List[PIIPattern]: List of loaded PII pattern objects
+
+        Raises:
+            FileNotFoundError: When pattern file is not found
+            json.JSONDecodeError: When JSON file format is invalid
+
         지정된 JSON 파일에서 PII 패턴들을 로드합니다.
 
         Args:
