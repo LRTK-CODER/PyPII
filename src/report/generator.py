@@ -85,27 +85,32 @@ class ReportGenerator:
         with open(output_path, 'w', encoding='utf-8') as f:
             json.dump(report, f, ensure_ascii=False, indent=2)
             
-    def save_csv(self, output_path: str):
+    def save_json(self, output_path: str):
         """
-        CSV 형식으로 리포트 저장
+        JSON 형식으로 리포트 저장
 
         Args:
             output_path: 저장할 파일 경로
         """
-        with open(output_path, 'w', newline='', encoding='utf-8') as f:
-            writer = csv.writer(f)
-            writer.writerow(['File', 'Pattern', 'Risk Level', 'Line Number', 'Matched Text', 'Context'])
-            
-            for file, results in self._group_by_file().items():
-                for r in results:
-                    writer.writerow([
-                        str(file),
-                        r.pattern_name,
-                        r.risk_level,
-                        r.line_number,
-                        r.matched_text,
-                        r.context
-                    ])
+        report = {
+            'summary': asdict(self.generate_summary()),
+            'detections': [
+                {
+                    'file': str(file),  # Path를 문자열로 변환
+                    'results': [
+                        {
+                            **asdict(r),
+                            'file_path': str(r.file_path) if r.file_path else None  # Path를 문자열로 변환
+                        } 
+                        for r in results
+                    ]
+                }
+                for file, results in self._group_by_file().items()
+            ]
+        }
+        
+        with open(output_path, 'w', encoding='utf-8') as f:
+            json.dump(report, f, ensure_ascii=False, indent=2)
                     
     def _group_by_file(self) -> Dict[Path, List[DetectionResult]]:
         """결과를 파일별로 그룹화"""

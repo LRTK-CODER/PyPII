@@ -15,6 +15,10 @@ from pathlib import Path
 from typing import List, Dict
 from dataclasses import dataclass
 from .patterns import PatternLoader, PIIPattern
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 @dataclass
 class DetectionResult:
@@ -93,25 +97,49 @@ class PIIDetector:
         """
         file_path = Path(file_path)
         mime_type = magic.from_file(str(file_path), mime=True)
+        logger.debug(f"파일 MIME 타입: {mime_type} - {file_path}")
         
-        if mime_type == 'application/pdf':
-            # PDF 파일 처리
-            import pdfplumber
-            text = ""
-            with pdfplumber.open(file_path) as pdf:
-                for page in pdf.pages:
-                    text += page.extract_text() or ""
-        
-        elif mime_type == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
-            # DOCX 파일 처리
-            import docx
-            doc = docx.Document(file_path)
-            text = "\n".join(paragraph.text for paragraph in doc.paragraphs)
-        
-        else:
-            # 일반 텍스트 파일 처리
-            with open(file_path, 'r', encoding='utf-8') as f:
-                text = f.read()
+        try:
+            if 'pdf' in mime_type.lower():
+                logger.debug(f"PDF 파일 처리 중: {file_path}")
+                import pdfplumber
+                text = ""
+                with pdfplumber.open(file_path) as pdf:
+                    for page in pdf.pages:
+                        text += page.extract_text() or ""
+            
+            elif 'officedocument.wordprocessingml.document' in mime_type.lower() or file_path.suffix.lower() == '.docx':
+                logger.debug(f"DOCX 파일 처리 중: {file_path}")
+                import docx
+                doc = docx.Document(file_path)
                 
-        return self.detect(text)
-    
+                # 일반 텍스트 추출
+                paragraphs_text = [paragraph.text for paragraph in doc.paragraphs]
+                
+                # 테이블 내용 추출
+                tables_text = []
+                for table in doc.tables:
+                    for row in table.rows:
+                        row_text = [cell.text for cell in row.cells]
+                        tables_text.append(' '.join(row_text))
+                
+                # 모든 텍스트 결합
+                text = '\n'.join(paragraphs_text + tables_text)
+                logger.debug(f"DOCX 텍스트 추출 완료: {len(text)} 문자")
+            
+            else:
+                logger.debug(f"일반 텍스트 파일 처리 중: {file_path}")
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    text = f.read()
+            
+            results = self.detect(text)
+            for result in results:
+                result.file_path = file_path
+                
+            return results
+            
+        except Exception as e:
+            logger.error(f"파일 처리 중 오류 발생 - {file_path}: {str(e)}")
+            import traceback
+            logger.debug(traceback.format_exc())
+            return []

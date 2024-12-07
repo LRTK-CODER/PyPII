@@ -32,7 +32,8 @@ class FileScanner:
             'text/plain',
             'application/pdf',
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document',  # docx
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'  # xlsx
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',  # xlsx
+            'application/msword' # doc
         }
         
     def scan_directory(self, path: str) -> Generator[Path, None, None]:
@@ -73,8 +74,23 @@ class FileScanner:
             지원되는 파일이면 True, 아니면 False
         """
         try:
+            # 파일 확장자 먼저 확인
+            if file_path.suffix.lower() == '.docx':
+                logger.debug(f"DOCX 파일 감지됨: {file_path}")
+                return True
+                
+            # MIME 타입 확인
             mime = magic.from_file(str(file_path), mime=True)
-            return mime in self.supported_types
+            logger.debug(f"파일 MIME 타입: {mime} - {file_path}")
+            
+            is_supported = mime in self.supported_types
+            if is_supported:
+                logger.debug(f"지원되는 파일 타입: {file_path}")
+            else:
+                logger.debug(f"지원되지 않는 파일 타입: {file_path} ({mime})")
+                
+            return is_supported
+            
         except Exception as e:
             logger.error(f"MIME 타입 감지 실패: {file_path} - {str(e)}")
             return False
