@@ -10,6 +10,7 @@ PII(개인식별정보) 검출 모듈
 """
 
 import re
+from pathlib import Path
 from typing import List, Dict
 from dataclasses import dataclass
 from .patterns import PatternLoader, PIIPattern
@@ -24,6 +25,7 @@ class DetectionResult:
     risk_level: str
     line_number: int
     context: str
+    file_path: Path = None
 
 class PIIDetector:
     """PII 패턴을 검출하는 클래스"""
