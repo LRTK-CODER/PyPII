@@ -169,3 +169,9 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# Pytest configuration file
+pytest.ini
+
+# pyenv file
+.python-version
